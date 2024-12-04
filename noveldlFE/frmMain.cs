@@ -46,6 +46,7 @@ namespace noveldlFE
 			public string novelBaseFolder;
 			public string downloaderName;
 			public string[] urlTopParts;
+			public string[] extProg;
 		};
 
 		// WM_COPYDATAのメッセージID
@@ -72,6 +73,8 @@ namespace noveldlFE
 		private IntPtr hWnd = IntPtr.Zero;
 		private string dlAfterOpeNovel1st = "";
 		private string dlAfterOpeNovel1Later = "";
+		private string[] extProg = new string[3];
+
 		public NOVEL_STATUS novelSt = NOVEL_STATUS.None;
 		private DateTime StartTime = DateTime.Now;
 
@@ -154,6 +157,8 @@ namespace noveldlFE
 					this.Close();
 				}
 				iniPathFE = ofd.FileName;
+				WritePrivateProfileString("Common", "TargetPath", iniPathFE, iniPath);
+
 			}
 			lblIniPath.Text = iniPathFE;
 
@@ -161,6 +166,13 @@ namespace noveldlFE
 			dlAfterOpeNovel1st = wk.ToString();
 			GetPrivateProfileString("DownloadAfterOperation", "Novel1Later", "", wk, 512, iniPathFE);
 			dlAfterOpeNovel1Later = wk.ToString();
+
+			GetPrivateProfileString("DownloadAfterOperation", "ExtProgram1", "", wk, 512, iniPathFE);
+			extProg[0] = wk.ToString();
+			GetPrivateProfileString("DownloadAfterOperation", "ExtProgram2", "", wk, 512, iniPathFE);
+			extProg[1] = wk.ToString();
+			GetPrivateProfileString("DownloadAfterOperation", "ExtProgram3", "", wk, 512, iniPathFE);
+			extProg[2] = wk.ToString();
 
 			hWnd = this.Handle;
 
@@ -195,6 +207,14 @@ namespace noveldlFE
 				urlParam[index].downloaderName = wk.ToString();
 				GetPrivateProfileString(urltype, "URLTop", "", wk, 512, iniPathFE);
 				urlParam[index].urlTopParts = wk.ToString().Split(',');
+				urlParam[index].extProg = new string[3];
+				GetPrivateProfileString(urltype, "ExtProgram1", "", wk, 512, iniPathFE);
+				urlParam[index].extProg[0] = wk.ToString();
+				GetPrivateProfileString(urltype, "ExtProgram2", "", wk, 512, iniPathFE);
+				urlParam[index].extProg[1] = wk.ToString();
+				GetPrivateProfileString(urltype, "ExtProgram3", "", wk, 512, iniPathFE);
+				urlParam[index].extProg[2] = wk.ToString();
+
 			}
 			findstr = "Novel Folder:";
 			res = Array.FindAll(Lines, delegate (string s) { return s.IndexOf(findstr) != -1; });
@@ -329,6 +349,17 @@ namespace noveldlFE
 							{
 								exeAfterOperation(dlAfterOpeNovel1Later, tmppath);
 							}
+							int index = cboxListSelect.SelectedIndex;
+							foreach (string str in urlParam[index].extProg)
+							{
+								if (str == "") break;
+								exeAfterOperation(str, filepath);
+							}
+							foreach (string str in extProg)
+							{
+								if (str == "") break;
+								exeAfterOperation(str, filepath);
+							}
 							//List<string> buff = File.ReadAllLines(tmppath).ToList<string>();
 							string[] buff = File.ReadAllLines(tmppath);
 							using (FileStream fs = File.Open(filepath, FileMode.Open))
@@ -365,6 +396,17 @@ namespace noveldlFE
 						if (dlAfterOpeNovel1st != "")
 						{
 							exeAfterOperation(dlAfterOpeNovel1st, filepath);
+						}
+						int index = cboxListSelect.SelectedIndex;
+						foreach (string str in urlParam[index].extProg)
+						{
+							if (str == "") break;
+							exeAfterOperation(str, filepath);
+						}
+						foreach (string str in extProg)
+						{
+							if (str == "") break;
+							exeAfterOperation(str, filepath);
 						}
 						ChapCount = TotalChap;
 					}
