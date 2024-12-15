@@ -296,6 +296,7 @@ namespace noveldlFE
 		{
 			try
 			{
+				string tbNovelPathText = tbNovelPath.Text;
 				string dirname = ((string.IsNullOrEmpty(DirName) ? exeDirName : DirName));
 				string infopath = $@"{dirname}\{fname}Info.txt";
 				string filepath = (string.IsNullOrEmpty(fname) ? "" : $@"{dirname}\{fname}{fext}");
@@ -429,7 +430,7 @@ namespace noveldlFE
 							}
 						}
 					}
-					NovelListAdd("#毎週", UrlAdr, tbNovelPath.Text);
+					NovelListAdd("#毎週", UrlAdr, tbNovelPathText);
 				}
 			}
 			catch (Exception ex)
