@@ -300,7 +300,7 @@ namespace noveldlFE
 				string dirname = ((string.IsNullOrEmpty(DirName) ? exeDirName : DirName));
 				string infopath = $@"{dirname}\{fname}Info.txt";
 				string filepath = (string.IsNullOrEmpty(fname) ? "" : $@"{dirname}\{fname}{fext}");
-				int latestChap = 0;
+				int startPage = 1;
 				ChapCount = 0;
 				TotalChap = 0;
 				lblProgress.Text = "";
@@ -317,8 +317,9 @@ namespace noveldlFE
 							if (infos.Length >= 2)
 							{
 								if ((DateTime.TryParse(infos[0], out latestDate))
-								&& (int.TryParse(infos[1], out latestChap)))
+								&& (int.TryParse(infos[1], out startPage)))
 								{
+									startPage++;
 									infoLines.Remove(ldata);
 									break;
 								}
@@ -326,14 +327,17 @@ namespace noveldlFE
 						}
 					}
 					//if (DlAbort) return;
+					numericUpDown1.Value = startPage;
+				}
+				else
+				{
+					startPage = (int)numericUpDown1.Value;
 				}
 				string tmppath = $@"{dirname}\__tmp.txt";
 				Process proc = null;
-				numericUpDown1.Value = latestChap + 1;
-				if (latestChap > 0)
+				if (startPage > 1)
 				{
 					//途中までダウンロードできていれば続きをダウンロードし、マージする
-					int startPage = latestChap + 1;
 					if (File.Exists(tmppath)) File.Delete(tmppath);
 					//小説を続きの章から最新章までダウンロード
 					proc = noveldlDownload(hWnd, UrlAdr, tmppath, startPage);
@@ -421,7 +425,7 @@ namespace noveldlFE
 					//小説情報ファイルを書き込む
 					using (StreamWriter sw = new StreamWriter(File.Create(infopath), new UTF8Encoding()))
 					{
-						sw.WriteLine($"{DateTime.Now}, {ChapCount + latestChap}");
+						sw.WriteLine($"{DateTime.Now}, {ChapCount + startPage -1}");
 						if (infoLines.Count > 0)
 						{
 							foreach (string str in infoLines)
@@ -468,7 +472,7 @@ namespace noveldlFE
 		}
 
 
-		private Process noveldlDownload(IntPtr hWnd, string URL, string filePath = null, int startChap = 0)
+		private Process noveldlDownload(IntPtr hWnd, string URL, string filePath = null, int startChap = 1)
 		{
 			int index = cboxListSelect.SelectedIndex;
 			if (chkUrl(index, URL) == false)
@@ -478,18 +482,17 @@ namespace noveldlFE
 
 			Process proc = new Process();
 			proc.StartInfo.FileName = urlParam[index].downloaderName;
-			if (string.IsNullOrEmpty(filePath))
+			string arg = $" \"-h {hWnd}\"";
+			if (string.IsNullOrEmpty(filePath) == false)
 			{
-				proc.StartInfo.Arguments = $" \"-h {hWnd}\" {URL}";
+				arg += $" \"{filePath}\"";
 			}
-			else if (startChap <= 0)
+			if (startChap > 0)
 			{
-				proc.StartInfo.Arguments = $" \"-h {hWnd}\" \"{filePath}\" {URL}";
+				arg += $" \"-s {startChap}\"";
 			}
-			else
-			{
-				proc.StartInfo.Arguments = $" \"-h {hWnd}\" \"-s {startChap}\" \"{filePath}\" {URL}";
-			}
+			arg += $" {URL}";
+			proc.StartInfo.Arguments = arg;
 			proc.StartInfo.CreateNoWindow = true; // コンソール・ウィンドウを開かない
 			proc.StartInfo.UseShellExecute = false; // シェル機能を使用しない
 			proc.SynchronizingObject = this;

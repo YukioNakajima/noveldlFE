@@ -216,7 +216,7 @@
 			this.MinimizeBox = false;
 			this.MinimumSize = new System.Drawing.Size(610, 160);
 			this.Name = "frmMain";
-			this.Text = "Form1";
+			this.Text = "小説ダウンローダーUI";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
 			this.Load += new System.EventHandler(this.frmMain_Load);
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
