@@ -62,6 +62,8 @@ namespace noveldlFE
 		public string exeDirName = "";
 		public string iniPath = "";
 		public string iniPathFE = "";
+		private string logPath = "";
+
 		//private DateTime latestDLDateTime;
 		//private DateTime nextEveryDay;
 		//private DateTime nextEveryWeek;
@@ -130,6 +132,12 @@ namespace noveldlFE
 			exePath = myAssembly.Location;
 			exeDirName = Path.GetDirectoryName(exePath);
 			iniPath = exeDirName + @"\" + Path.GetFileNameWithoutExtension(exePath) + ".ini";
+			logPath = exeDirName + @"\Log";
+			if (Directory.Exists(logPath) == false)
+			{
+				Directory.CreateDirectory(logPath);
+			}
+			logPath += $@"\{DateTime.Now.ToString("yyyyMMdd")}.log";
 
 			lblStatus.Text = "";
 
@@ -193,6 +201,37 @@ namespace noveldlFE
 				}
 			}
 			if (cboxListSelect.Items.Count > 0) cboxListSelect.SelectedIndex = 0;
+			//30日以上経過したログの消去
+			try
+			{
+				string fpath = exeDirName;
+				fpath += @"\Log\";
+				if (Directory.Exists(fpath) == false)
+				{
+					Directory.CreateDirectory(fpath);
+				}
+				string[] files = System.IO.Directory.GetFiles(fpath, "*.log"); //, System.IO.SearchOption.AllDirectories);
+				foreach (string path in files)
+				{
+					string fname = Path.GetFileNameWithoutExtension(path);
+					int iy, im, id;
+					if ((fname.Length == 6)
+					&& (int.TryParse(fname.Substring(0, 2), out iy))
+					&& (int.TryParse(fname.Substring(2, 2), out im))
+					&& (int.TryParse(fname.Substring(4, 2), out id)))
+					{
+						DateTime fdate = new DateTime(iy + 2000, im, id);
+						if ((DateTime.Now - fdate).TotalDays > 30)
+						{
+							System.IO.File.Delete(path);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				string msg = ex.Message;
+			}
 		}
 
 		private void getUrlParam(int index, string listName)
@@ -286,6 +325,19 @@ namespace noveldlFE
 			timer1.Enabled = false;
 		}
 
+		private void LogOut(String logMsg)
+		{
+			string fpath = exeDirName + @"\Log\";
+			if (!Directory.Exists(fpath))
+			{
+				Directory.CreateDirectory(fpath);
+			}
+			using (StreamWriter sw = new StreamWriter(fpath + DateTime.Now.ToString("yyMMdd") + @".log", true, Encoding.UTF8))
+			{
+				sw.WriteLine(DateTime.Now.ToString("HH:mm:ss") + ":" + logMsg);
+			}
+		}
+
 		/// <summary>
 		/// 小説をダウンロード
 		/// </summary>
@@ -359,12 +411,12 @@ namespace noveldlFE
 							foreach (string str in urlParam[index].extProg)
 							{
 								if (str == "") break;
-								exeAfterOperation(str, filepath);
+								exeAfterOperation(str, tmppath);
 							}
 							foreach (string str in extProg)
 							{
 								if (str == "") break;
-								exeAfterOperation(str, filepath);
+								exeAfterOperation(str, tmppath);
 							}
 							//List<string> buff = File.ReadAllLines(tmppath).ToList<string>();
 							string[] buff = File.ReadAllLines(tmppath);
@@ -387,6 +439,7 @@ namespace noveldlFE
 							File.Delete(tmppath);
 							File.Delete($@"{dirname}\__tmp.log");
 						}
+						LogOut($"{fname}、{UrlAdr}、開始章{startPage}、読込章数{ChapCount}");
 					}
 				}
 				else
@@ -415,10 +468,12 @@ namespace noveldlFE
 							exeAfterOperation(str, filepath);
 						}
 						ChapCount = TotalChap;
+						LogOut($"{fname}、{UrlAdr}、開始章{startPage}、読込章数{ChapCount}");
 					}
 					else
 					{
 						//MessageBox.Show($"[{fname}]がダウンロードできませんでした", "警告", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+						LogOut($"{fname}、{UrlAdr}、消滅");
 					}
 				}
 				if ((File.Exists(filepath)) && (ChapCount > 0))
