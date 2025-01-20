@@ -636,7 +636,8 @@ namespace noveldlFE
 
 		private string[] getFigLink(string[] strSrray)
 		{
-			return strSrray.Where(str => str.Contains("リンクの図")).Select(str => Regex.Replace(str, @"^.*リンクの図（", "https:")).Select(str => Regex.Replace(str, @"）入る］.*", "")).ToArray();
+			//return strSrray.Where(str => str.Contains("リンクの図")).Select(str => Regex.Replace(str, @"^.*リンクの図（", "https:")).Select(str => Regex.Replace(str, @"）入る］.*", "")).ToArray();
+			return strSrray.Where(str => str.Contains("リンクの図")).Select(str => Regex.Replace(str, @"^.*リンクの図（", "https:")).Select(str => Regex.Replace(str, @"/userpageimage/viewimagebig/icode/", @"/")).Select(str => Regex.Replace(str, @"）入る］.*", "")).ToArray();
 		}
 
 		private void timer1_Tick(object sender, EventArgs e)
